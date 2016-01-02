@@ -4,6 +4,8 @@
 var outputElm = document.getElementById('output');
 var errorElm = document.getElementById('error');
 var dbFileElm = document.getElementById('dbfile')
+var years = document.getElementById('years');
+
 outputElm.innerHTML ="";
 // Start the worker in which sql.js will run
 var worker = new Worker("worker.sql.js");
@@ -35,6 +37,27 @@ function execute(commands) {
     worker.postMessage({action:'exec', sql:commands});
 }
 
+function fillYears(commands) {
+
+    worker.onmessage = function(event) {
+        var results = event.data.results[0].values;
+        while(years.options.length > 0){
+            years.remove(0);
+        }
+        var option = document.createElement("option");
+        option.text = "Select Year";
+        years.add(option);
+        for (var i=0; i<results.length; i++) {
+            var option = document.createElement("option");
+            option.text = results[i][0];
+            years.add(option);
+        }
+        years.removeAttribute("display");
+        errorElm.innerHTML=" ";
+    }
+    worker.postMessage({action:'exec', sql:commands});
+}
+
 // Load a db from a file
 dbFileElm.onchange = function() {
     var f = dbFileElm.files[0];
@@ -42,35 +65,8 @@ dbFileElm.onchange = function() {
     r.onload = function() {
         worker.onmessage = function () {
             errorElm.innerHTML="Doin' Thangs...";
-            outputElm.innerHTML = "2015 Fucking Text Count <br />";
             noerror()
-            execute ("select count(*) as 'Sent:'\n from message m inner join handle " +
-                "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='2015'\n " +
-                "and is_from_me=1;")
-
-            execute ("select count(*) as 'Received:'\n from message m inner join handle " +
-                "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='2015'\n " +
-                "and is_from_me=0;")
-
-            execute ("select count(*) as 'Fucks Received:'\n from message m inner join handle " +
-                "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='2015'\n " +
-                "and is_from_me=0 " +
-                "and text like '%fuck%'\n;")
-
-            execute ("select count(*) as 'Fucks Given:'\n from message m inner join handle " +
-                "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='2015'\n " +
-                "and is_from_me=1 " +
-                "and text like '%fuck%'\n;")
-
-            execute ("select count(*) as 'Love Given:'\n from message m inner join handle " +
-                "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='2015'\n " +
-                "and is_from_me=1 " +
-                "and text like '%love you %'\n;")
-
-            execute ("select count(*) as 'Love Received:'\n from message m inner join handle " +
-                "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='2015'\n " +
-                "and is_from_me=0 " +
-               "and text like '%love you %'\n;")
+            fillYears ("select distinct strftime('%Y',Date(date+strftime('%s','2001-01-01 00:00:00'),'unixepoch')) as Years from message m;");
         };
 
         try {
@@ -82,3 +78,37 @@ dbFileElm.onchange = function() {
     }
     r.readAsArrayBuffer(f);
 }
+
+years.onchange= function(e) {
+    var year= years.value;
+    outputElm.innerHTML = year+ " Fucking Text Count <br />";
+    noerror()
+
+    execute ("select count(*) as 'Sent:'\n from message m inner join handle " +
+        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
+        "and is_from_me=1;")
+
+    execute ("select count(*) as 'Received:'\n from message m inner join handle " +
+        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
+        "and is_from_me=0;")
+
+    execute ("select count(*) as 'Fucks Received:'\n from message m inner join handle " +
+        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
+        "and is_from_me=0 " +
+        "and text like '%fuck%'\n;")
+
+    execute ("select count(*) as 'Fucks Given:'\n from message m inner join handle " +
+        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
+        "and is_from_me=1 " +
+        "and text like '%fuck%'\n;")
+
+    execute ("select count(*) as 'Love Given:'\n from message m inner join handle " +
+        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
+        "and is_from_me=1 " +
+        "and text like '%love you %'\n;")
+
+    execute ("select count(*) as 'Love Received:'\n from message m inner join handle " +
+        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
+        "and is_from_me=0 " +
+        "and text like '%love you %'\n;")
+};
