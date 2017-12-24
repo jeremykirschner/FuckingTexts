@@ -103,12 +103,12 @@ years.onchange= function(e) {
         "and text like '%fuck%'\n;")
 
     execute ("select count(*) as 'Love Given:'\n from message m inner join handle " +
-        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
+        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(substr(date,0,10)+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
         "and is_from_me=1 " +
         "and text like '%love you %'\n;")
 
     execute ("select count(*) as 'Love Received:'\n from message m inner join handle " +
-        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(date+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
+        "h on h.ROWID=m.handle_id where strftime('%Y'\n,Date(substr(date,0,10)+strftime('%s'\n,'2001-01-01 00:00:00'\n),'unixepoch'\n))='"+ year +"'\n " +
         "and is_from_me=0 " +
         "and text like '%love you %'\n;")
 };
